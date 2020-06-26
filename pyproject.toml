@@ -10,6 +10,7 @@ python = "^3.8"
 pyramid = "^1.10.4"
 pyramid_jinja2 = "^2.8"
 waitress = "^1.4.4"
+filetype = "^1.0.7"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"
