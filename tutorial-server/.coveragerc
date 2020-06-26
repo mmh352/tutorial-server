@@ -1,0 +1,3 @@
+[run]
+source = tutorial_server
+omit = tutorial_server/test*
