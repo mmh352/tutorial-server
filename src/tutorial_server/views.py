@@ -9,6 +9,12 @@ from pyramid.response import Response
 from pyramid.view import view_config
 
 
+def includeme(config):
+    config.add_route('tutorial', f'{config.registry.settings["url.prefix"]}/tutorial/*path')
+    config.add_route('workspace', f'{config.registry.settings["url.prefix"]}/workspace/*path')
+    config.add_route('exec', f'{config.registry.settings["url.prefix"]}/exec/*path')
+
+
 @view_config(route_name='tutorial')
 def get_tutorial(request: Request):
     try:
