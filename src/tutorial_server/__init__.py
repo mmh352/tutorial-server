@@ -7,7 +7,6 @@ def main(global_config, **settings):
     if settings['url.prefix'].endswith('/'):
         settings['url.prefix'] = settings['url.prefix'][:-1]
     config = Configurator(settings=settings)
-    config.include('pyramid_jinja2')
     config.include('.views')
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home-one', f'{settings["url.prefix"]}/*fizzle')
