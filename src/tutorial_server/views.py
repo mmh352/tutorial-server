@@ -10,7 +10,7 @@ import mimetypes
 
 from pathlib import Path
 from os import path
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPFound
 from pyramid.request import Request
 from pyramid.response import Response
 from pyramid.view import view_config
@@ -18,6 +18,7 @@ from pyramid.view import view_config
 
 def includeme(config):
     """Setup the Tutorial Server's routes."""
+    config.add_route('root', '/')
     config.add_route('tutorial.get',
                      f'{config.registry.settings["url.prefix"]}/tutorial/*path',
                      request_method='GET')
@@ -30,6 +31,11 @@ def includeme(config):
     config.add_route('workspace.live.get',
                      f'{config.registry.settings["url.prefix"]}/live/*path',
                      request_method='GET')
+
+
+@view_config(route_name='root')
+def root(request: Request):
+    raise HTTPFound(request.route_url('tutorial.get', path=()))
 
 
 def resolve_path(base_dir, relative_path, index=('index.html',)):
