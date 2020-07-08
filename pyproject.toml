@@ -10,6 +10,8 @@ python = "^3.8"
 pyramid = "^1.10.4"
 waitress = "^1.4.4"
 filetype = "^1.0.7"
+requests = "^2.24.0"
+decorator = "^4.4.2"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"
