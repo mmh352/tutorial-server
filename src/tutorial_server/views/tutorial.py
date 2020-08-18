@@ -1,12 +1,6 @@
-"""
-#####################################################
-:mod:`~tutorial_server.views` - Tutorial Server Views
-#####################################################
-
-This module contains the view handlers for the Tutorial Server.
-"""
 import filetype
 import mimetypes
+import os
 
 from decorator import decorator
 from pathlib import Path
@@ -16,29 +10,8 @@ from pyramid.request import Request
 from pyramid.response import Response
 from pyramid.view import view_config
 
-from .jupyterhub_ping import ping_alive
-
-
-def includeme(config):
-    """Setup the Tutorial Server's routes."""
-    config.add_route('root', f'{config.registry.settings["url.prefix"]}/')
-    config.add_route('tutorial.get',
-                     f'{config.registry.settings["url.prefix"]}/tutorial/*path',
-                     request_method='GET')
-    config.add_route('workspace.get',
-                     f'{config.registry.settings["url.prefix"]}/workspace/*path',
-                     request_method='GET')
-    config.add_route('workspace.patch',
-                     f'{config.registry.settings["url.prefix"]}/workspace/*path',
-                     request_method='PATCH')
-    config.add_route('workspace.live.get',
-                     f'{config.registry.settings["url.prefix"]}/live/*path',
-                     request_method='GET')
-
-
-@view_config(route_name='root')
-def root(request: Request):
-    raise HTTPFound(request.route_url('tutorial.get', path=()))
+from tutorial_server.deployment import require_tutorial_ready
+from tutorial_server.jupyterhub_ping import ping_alive
 
 
 def resolve_path(base_dir, relative_path, index=('index.html',)):
@@ -60,7 +33,7 @@ def resolve_path(base_dir, relative_path, index=('index.html',)):
     """
     file_path = Path(path.join(base_dir, *relative_path))
     file_path = file_path.resolve(strict=True)
-    if not str(file_path).startswith(base_dir):
+    if not str(file_path).startswith(str(Path(base_dir).resolve(strict=True))):
         raise HTTPNotFound()
     if file_path.is_dir():
         matched = None
@@ -98,11 +71,12 @@ def guess_type(file_path):
 
 
 @view_config(route_name='tutorial.get')
+@require_tutorial_ready()
 @ping_alive()
 def get_tutorial(request: Request):
     """Fetch a single resource from the tutorial tree."""
     try:
-        file_path = resolve_path(request.registry.settings['app.tutorial_home'],
+        file_path = resolve_path(os.path.join(request.registry.settings['app.home'], 'tutorial'),
                                  request.matchdict['path'])
         mime_type = guess_type(file_path)
         headerlist = [('Content-Type', mime_type[0])]

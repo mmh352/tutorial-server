@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Tutorial Loading... Please Wait...</title>
+  <meta http-equiv="refresh" content="60"/>
+  <style>
+    h1, svg {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    h1 {
+      margin: 0;
+      font-size: 12pt
+    }
+  </style>
+</head>
+<body>
+  <h1>Loading...</h1>
+  <svg width="100" height="100" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg" stroke="#1e4b9b">
+    <g fill="none" fill-rule="evenodd">
+      <g transform="translate(1 1)" stroke-width="2">
+        <path d="M36 18c0-9.94-8.06-18-18-18">
+          <animateTransform attributeName="transform" type="rotate" from="0 18 18" to="360 18 18" dur="1.5s" repeatCount="indefinite"/>
+        </path>
+      </g>
+    </g>
+  </svg>
+  <script>
+    setInterval(async () => {
+        const response = await fetch('$ready_url');
+        if (response.status === 200) {
+            const data = await response.json();
+            if (data && data.status) {
+                document.location.reload();
+            }
+        }
+    }, 1000);
+  </script>
+</body>
+</html>
