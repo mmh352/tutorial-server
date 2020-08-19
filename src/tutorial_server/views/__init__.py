@@ -27,9 +27,6 @@ def includeme(config):
                      f'{config.registry.settings["url.prefix"]}/tutorial/*path',
                      request_method='GET')
 
-    if 'app.proxy' in settings:
-        print(settings['app.proxy'])
-
 
 @view_config(route_name='root')
 def root(request: Request):
