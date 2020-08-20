@@ -40,6 +40,8 @@ def deploy_tutorial(config):
         shutil.rmtree(settings['app.tmp'])
     deploy_content(settings['app.source'], settings['app.home'], settings['app.tmp'])
     deploy_workspace(settings['app.home'], settings['app.tmp'])
+    if os.path.exists(settings['app.tmp']):
+        shutil.rmtree(settings['app.tmp'])
     tutorial_ready = True
 
 
