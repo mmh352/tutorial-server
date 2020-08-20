@@ -23,11 +23,11 @@ def includeme(config):
 
     config.add_route('root', f'{settings["url.prefix"]}/')
 
-    config.add_route('tutorial.get',
-                     f'{config.registry.settings["url.prefix"]}/tutorial/*path',
+    config.add_route('content.get',
+                     f'{config.registry.settings["url.prefix"]}/content/*path',
                      request_method='GET')
 
 
 @view_config(route_name='root')
 def root(request: Request):
-    raise HTTPFound(request.route_url('tutorial.get', path=()))
+    raise HTTPFound(request.route_url('content.get', path=()))

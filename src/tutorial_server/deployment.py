@@ -16,7 +16,7 @@ tutorial_ready = False
 
 def includeme(config):
     """Setup the deployment handling."""
-    config.add_route('ready', '/ready')
+    config.add_route('ready', f'{config.registry.settings["url.prefix"]}/ready')
     Thread(group=None, target=deploy_tutorial, kwargs={'config': config}).start()
 
 

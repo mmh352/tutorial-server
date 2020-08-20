@@ -70,7 +70,7 @@ def guess_type(file_path):
     return mime_type
 
 
-@view_config(route_name='tutorial.get')
+@view_config(route_name='content.get')
 @require_tutorial_ready()
 @ping_alive()
 def get_tutorial(request: Request):
