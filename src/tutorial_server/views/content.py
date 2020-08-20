@@ -77,7 +77,10 @@ def get_tutorial(request: Request):
         file_path = resolve_path(os.path.join(request.registry.settings['app.home'], 'tutorial'),
                                  request.matchdict['path'])
         mime_type = guess_type(file_path)
-        headerlist = [('Content-Type', mime_type[0])]
+        headerlist = [
+            ('X-URL-Prefix', request.registry.settings["url.prefix"]),
+            ('Content-Type', mime_type[0]),
+        ]
         if mime_type[1]:
             headerlist = [('Content-Encoding', mime_type[1])]
         return Response(body=file_path.read_bytes(),
