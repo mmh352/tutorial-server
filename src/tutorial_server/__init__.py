@@ -8,7 +8,6 @@ def main(global_config, **settings):
         settings['url.prefix'] = settings['url.prefix'][:-1]
     config = Configurator(settings=settings)
     config.include('.deployment')
-    config.include('.jupyterhub_ping')
     config.include('.views')
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.scan()

@@ -11,7 +11,6 @@ from pyramid.response import Response
 from pyramid.view import view_config
 
 from tutorial_server.deployment import require_tutorial_ready
-from tutorial_server.jupyterhub_ping import ping_alive
 
 
 def resolve_path(base_dir, relative_path, index=('index.html',)):
@@ -72,7 +71,6 @@ def guess_type(file_path):
 
 @view_config(route_name='content.get')
 @require_tutorial_ready()
-@ping_alive()
 def get_tutorial(request: Request):
     """Fetch a single resource from the tutorial tree."""
     try:
