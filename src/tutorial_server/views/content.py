@@ -78,7 +78,7 @@ def get_tutorial(request: Request):
                                  request.matchdict['path'])
         mime_type = guess_type(file_path)
         headerlist = [
-            ('X-URL-Prefix', request.registry.settings["url.prefix"]),
+            ('X-URL-Prefix', request.registry.settings["url.prefix"][:-len(request.registry.settings["url.app_prefix"])]),
             ('Content-Type', mime_type[0]),
         ]
         if mime_type[1]:
