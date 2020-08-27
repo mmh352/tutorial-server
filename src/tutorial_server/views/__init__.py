@@ -45,7 +45,6 @@ def download(request: Request):
                 source_filename = os.path.join(basepath, filename)
                 target_filename = source_filename[len(app_home) + 1:]
                 zip_file.write(source_filename, arcname=target_filename)
-                print(target_filename)
     download_filename = 'Content.zip'
     if 'app.download_filename' in request.registry.settings:
         download_filename = request.registry.settings['app.download_filename']
