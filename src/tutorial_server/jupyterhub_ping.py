@@ -6,9 +6,8 @@
 from os import environ
 from requests import post
 from requests.exceptions import ConnectionError
-from datetime import datetime, timedelta
+from datetime import datetime
 from decorator import decorator
-from pyramid.request import Request
 from threading import Timer
 
 

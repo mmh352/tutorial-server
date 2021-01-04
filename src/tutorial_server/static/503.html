@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>Tutorial Loading... Please Wait...</title>
+  <title>Module Loading... Please Wait...</title>
   <meta http-equiv="refresh" content="60"/>
   <style>
     h1, svg {
@@ -13,7 +13,7 @@
     }
     h1 {
       margin: 0;
-      font-size: 12pt
+      font-size: 12pt;
     }
   </style>
 </head>
@@ -30,12 +30,11 @@
   </svg>
   <script>
     setInterval(async () => {
-        const response = await fetch('$ready_url');
+        const response = await fetch(document.location.href, {
+            method: 'HEAD',
+        });
         if (response.status === 200) {
-            const data = await response.json();
-            if (data && data.status) {
-                document.location.reload();
-            }
+            document.location.reload();
         }
     }, 1000);
   </script>
