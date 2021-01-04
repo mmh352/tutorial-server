@@ -45,7 +45,7 @@ class DefaultHandler(web.RequestHandler):
 
 class RootHandler(web.RequestHandler):
 
-    def head(self):
+    def head(self, *args, **kwargs):
         if not content_ready():
             self.send_error(status_code=503)
 
