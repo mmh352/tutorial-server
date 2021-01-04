@@ -11,6 +11,7 @@ from .handlers import DefaultHandler, RootHandler, TutorialHandler, DownloadHand
 
 define('config', default='production.ini', help='The configuration file to load')
 define('basepath', default='', help='The URL basepath set by the JupyterHub')
+define('port', default=6543, type=int, help='The port to use')
 parse_command_line()
 setup_config()
 
@@ -36,10 +37,9 @@ def start_server():
                                  TutorialHandler,
                                  {'part': part}))
     app = web.Application(handlers,
-                          default_handler_class=DefaultHandler,
-                          autoreload=True)
+                          default_handler_class=DefaultHandler)
     app.listen(address=config.get('server', 'host'),
-               port=config.getint('server', 'port'))
+               port=options.port)
     asyncio.get_event_loop().create_task(startup(app))
     logger.debug('Starting the server')
     ioloop.IOLoop.current().start()
