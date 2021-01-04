@@ -79,6 +79,7 @@ class TutorialHandler(RootHandler):
             filepath = os.path.abspath(os.path.join(rootpath, filename))
             if filepath.startswith(rootpath) and os.path.exists(filepath):
                 self.set_header('Content-Type', guess_mime_type(filepath))
+                self.set_header('X-URL-prefix', options.basepath)
                 with open(filepath, 'rb') as in_f:
                     self.write(in_f.read())
                 self.flush()
