@@ -27,6 +27,8 @@ async def startup(app):
 def start_server():
     if not options.basepath.endswith('/'):
         options.basepath = options.basepath + '/'
+    if not options.basepath.startswith('/'):
+        options.basepath = '/' + options.basepath
     logger.debug(f'Creating the application at {options.basepath} ({options.port})')
     handlers = [
         (f'{options.basepath}', RootHandler),
