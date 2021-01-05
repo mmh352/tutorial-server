@@ -95,11 +95,14 @@ class DownloadHandler(RootHandler):
         if content_ready():
             buffer = BytesIO()
             with ZipFile(buffer, mode='w') as zip_file:
-                homepath = config.get('app', 'home')
-                for basepath, _, filenames in os.walk(homepath):
-                    for filename in filenames:
-                        filepath = os.path.join(basepath, filename)
-                        zip_file.write(filepath, f'{config.get("app", "name")}/{filepath[len(homepath) + 1:]}')
+                for part in [p.strip() for x in config.get('app', 'parts').split(',') for p in x.split('\n')]:
+                    if config.has_section(f'app:{part}'):
+                        part_path = os.path.join(config.get('app', 'home'), config.get(f'app:{part}', 'target'))
+                        home_path = config.get('app', 'home')
+                        for basepath, _, filenames in os.walk(part_path):
+                            for filename in filenames:
+                                filepath = os.path.join(basepath, filename)
+                                zip_file.write(filepath, f'{config.get("app", "name")}/{filepath[len(home_path) + 1:]}')
             self.set_header('Content-Type', 'application/zip')
             self.set_header('Content-Disposition', f'attachment; filename={config.get("app", "name")}.zip')
             self.write(buffer.getvalue())
