@@ -36,7 +36,7 @@ class DefaultHandler(web.RequestHandler):
     def write_error(self, status_code, exc_info=None):
         if status_code == 404:
             body = read_text('tutorial_server.static', '404.html')
-            body = body.replace('${baseurl}', f'{options.basepath}/')
+            body = body.replace('${baseurl}', f'{options.basepath}')
             self.write(body)
         elif status_code == 503:
             self.write(read_text('tutorial_server.static', '503.html'))
@@ -51,14 +51,14 @@ class RootHandler(web.RequestHandler):
 
     def get(self):
         if content_ready():
-            self.redirect(f'{options.basepath}/{config.get("app", "default")}/')
+            self.redirect(f'{options.basepath}{config.get("app", "default")}/')
         else:
             self.send_error(status_code=503)
 
     def write_error(self, status_code, exc_info=None):
         if status_code == 404:
             body = read_text('tutorial_server.static', '404.html')
-            body = body.replace('${baseurl}', f'{options.basepath}/')
+            body = body.replace('${baseurl}', f'{options.basepath}')
             self.write(body)
         elif status_code == 503:
             self.write(read_text('tutorial_server.static', '503.html'))

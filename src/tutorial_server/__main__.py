@@ -10,7 +10,7 @@ from .handlers import DefaultHandler, RootHandler, TutorialHandler, DownloadHand
 
 
 define('config', default='production.ini', help='The configuration file to load')
-define('basepath', default='', help='The URL basepath set by the JupyterHub')
+define('basepath', default='/', help='The URL basepath set by the JupyterHub')
 define('port', default=6543, type=int, help='The port to use')
 parse_command_line()
 setup_config()
@@ -25,15 +25,17 @@ async def startup(app):
 
 
 def start_server():
+    if not options.basepath.endswith('/'):
+        options.basepath = options.basepath + '/'
     logger.debug(f'Creating the application at {options.basepath} ({options.port})')
     handlers = [
-        (f'{options.basepath}/', RootHandler),
-        (f'{options.basepath}/download', DownloadHandler),
+        (f'{options.basepath}', RootHandler),
+        (f'{options.basepath}download', DownloadHandler),
     ]
     for part in [p.strip() for x in config.get('app', 'parts').split(',') for p in x.split('\n')]:
         if config.has_section(f'app:{part}'):
             if config.get(f'app:{part}', 'type') == 'tutorial':
-                handlers.append((f'{options.basepath}/{part}/(.*)',
+                handlers.append((f'{options.basepath}{part}/(.*)',
                                  TutorialHandler,
                                  {'part': part}))
     app = web.Application(handlers,
