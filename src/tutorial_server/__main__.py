@@ -25,7 +25,7 @@ async def startup(app):
 
 
 def start_server():
-    logger.debug('Creating the application')
+    logger.debug(f'Creating the application at {options.basepath} ({options.port})')
     handlers = [
         (f'{options.basepath}/', RootHandler),
         (f'{options.basepath}/download', DownloadHandler),
