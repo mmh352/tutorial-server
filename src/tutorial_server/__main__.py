@@ -6,7 +6,7 @@ from tornado.options import define, options, parse_command_line
 
 from .config import config, setup_config
 from .content import deploy_content
-from .handlers import DefaultHandler, RootHandler, TutorialHandler, DownloadHandler
+from .handlers import (DefaultHandler, RootHandler, TutorialHandler, DownloadHandler, RefreshHandler)
 
 
 define('config', default='production.ini', help='The configuration file to load')
@@ -33,6 +33,7 @@ def start_server():
     handlers = [
         (f'{options.basepath}', RootHandler),
         (f'{options.basepath}download', DownloadHandler),
+        (f'{options.basepath}refresh', RefreshHandler),
     ]
     for part in [p.strip() for x in config.get('app', 'parts').split(',') for p in x.split('\n')]:
         if config.has_section(f'app:{part}'):

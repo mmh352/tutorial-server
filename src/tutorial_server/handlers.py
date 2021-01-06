@@ -9,7 +9,7 @@ from tornado.options import options
 from zipfile import ZipFile
 
 from .config import config
-from .content import content_ready
+from .content import content_ready, deploy_content
 
 
 def guess_mime_type(filepath):
@@ -106,6 +106,17 @@ class DownloadHandler(RootHandler):
             self.set_header('Content-Type', 'application/zip')
             self.set_header('Content-Disposition', f'attachment; filename={config.get("app", "name")}.zip')
             self.write(buffer.getvalue())
+            self.flush()
+        else:
+            self.send_error(status_code=503)
+
+
+class RefreshHandler(RootHandler):
+    """The :class:`~tutorial_server.handlers.RefreshHandler` reloads the tutorial content."""
+
+    async def post(self):
+        if content_ready():
+            await deploy_content()
             self.flush()
         else:
             self.send_error(status_code=503)
