@@ -56,7 +56,10 @@ async def fetch_content(source):
     logger.debug('Fetching latest content')
     if source.startswith('http://') or source.startswith('https://'):
         client = AsyncHTTPClient()
-        response = await client.fetch(source)
+        headers = {}
+        if config.has_option('app', 'source.auth') and config.has_option('app', 'source.auth.token'):
+            headers['Authorization'] = f'bearer {config.get("app", "source.auth.token")}'
+        response = await client.fetch(source, headers=headers)
         if response.code == 200:
             os.makedirs(config.get('app', 'tmp'), exist_ok=True)
             with open(os.path.join(config.get('app', 'tmp'), 'download'), 'wb') as out_f:
