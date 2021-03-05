@@ -102,12 +102,15 @@ def deploy_part(part):
     Uses either :func:`~tutorial_server.content.deploy_tutorial` or :func:`~tutorial_server.content.deploy_workspace`
     to actually deploy the content files.
     """
-    logger.debug(f'Deploying part {part}')
-    if config.get(f'app:{part}', 'type') == 'tutorial':
-        deploy_tutorial(part)
-    elif config.get(f'app:{part}', 'type') == 'workspace':
-        deploy_workspace(part)
-    logger.debug(f'Deployed part {part}')
+    if not config.getboolean(f'app:{part}', 'nodeploy', fallback=False):
+        logger.debug(f'Deploying part {part}')
+        if config.get(f'app:{part}', 'type') == 'tutorial':
+            deploy_tutorial(part)
+        elif config.get(f'app:{part}', 'type') == 'workspace':
+            deploy_workspace(part)
+        elif config.get(f'app:{part}', 'type') == 'live':
+            deploy_workspace(part)
+        logger.debug(f'Deployed part {part}')
 
 
 def deploy_tutorial(part):

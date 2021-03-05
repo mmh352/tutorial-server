@@ -6,7 +6,8 @@ from tornado.options import define, options, parse_command_line
 
 from .config import config, setup_config
 from .content import deploy_content
-from .handlers import (DefaultHandler, RootHandler, TutorialHandler, DownloadHandler, RefreshHandler)
+from .handlers import (DefaultHandler, RootHandler, TutorialHandler, WorkspaceHandler, LiveHandler,
+                       DownloadHandler, RefreshHandler)
 
 
 define('config', default='production.ini', help='The configuration file to load')
@@ -38,8 +39,19 @@ def start_server():
     for part in [p.strip() for x in config.get('app', 'parts').split(',') for p in x.split('\n')]:
         if config.has_section(f'app:{part}'):
             if config.get(f'app:{part}', 'type') == 'tutorial':
-                handlers.append((f'{options.basepath}{part}/(.*)',
+                path = config.get(f'app:{part}', 'path', fallback=part)
+                handlers.append((f'{options.basepath}{path}/(.*)',
                                  TutorialHandler,
+                                 {'part': part}))
+            elif config.get(f'app:{part}', 'type') == 'workspace':
+                path = config.get(f'app:{part}', 'path', fallback=part)
+                handlers.append((f'{options.basepath}{path}/(.*)',
+                                 WorkspaceHandler,
+                                 {'part': part}))
+            elif config.get(f'app:{part}', 'type') == 'live':
+                path = config.get(f'app:{part}', 'path', fallback=part)
+                handlers.append((f'{options.basepath}{path}/(.*)',
+                                 LiveHandler,
                                  {'part': part}))
     app = web.Application(handlers,
                           default_handler_class=DefaultHandler)
