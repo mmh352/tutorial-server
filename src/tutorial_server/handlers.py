@@ -11,7 +11,6 @@ from tornado.options import options
 from zipfile import ZipFile
 
 from .config import config
-from .content import content_ready, deploy_content
 
 
 def guess_mime_type(filepath):
@@ -49,29 +48,17 @@ class DefaultHandler(web.RequestHandler):
 class RootHandler(web.RequestHandler):
     """Root handler that redirects when ready."""
 
-    def head(self, *args, **kwargs):
-        if not content_ready():
-            self.send_error(status_code=503)
-
     def get(self):
-        if content_ready():
-            self.redirect(f'{options.basepath}{config.get("app", "default")}/')
-        else:
-            self.send_error(status_code=503)
+        self.redirect(f'{options.basepath}{config.get("app", "default")}/')
 
     def post(self):
-        if content_ready():
-            self.redirect(f'{options.basepath}{config.get("app", "default")}/')
-        else:
-            self.send_error(status_code=503)
+        self.redirect(f'{options.basepath}{config.get("app", "default")}/')
 
     def write_error(self, status_code, exc_info=None):
         if status_code == 404:
             body = read_text('tutorial_server.static', '404.html')
             body = body.replace('${baseurl}', f'{options.basepath}')
             self.write(body)
-        elif status_code == 503:
-            self.write(read_text('tutorial_server.static', '503.html'))
         self.flush()
 
 
@@ -84,21 +71,18 @@ class TutorialHandler(RootHandler):
                                                       config.get(f'app:{self._part}', 'target')))
 
     def get(self, path):
-        if content_ready():
-            filename = path
-            if filename == '' or filename.endswith('/'):
-                filename = f'{filename}index.html'
-            filepath = os.path.abspath(os.path.join(self._rootpath, filename))
-            if filepath.startswith(self._rootpath) and os.path.exists(filepath):
-                self.set_header('Content-Type', guess_mime_type(filepath))
-                self.set_header('X-URL-prefix', options.basepath)
-                with open(filepath, 'rb') as in_f:
-                    self.write(in_f.read())
-                self.flush()
-            else:
-                self.send_error(status_code=404)
+        filename = path
+        if filename == '' or filename.endswith('/'):
+            filename = f'{filename}index.html'
+        filepath = os.path.abspath(os.path.join(self._rootpath, filename))
+        if filepath.startswith(self._rootpath) and os.path.exists(filepath):
+            self.set_header('Content-Type', guess_mime_type(filepath))
+            self.set_header('X-URL-prefix', options.basepath)
+            with open(filepath, 'rb') as in_f:
+                self.write(in_f.read())
+            self.flush()
         else:
-            self.send_error(status_code=503)
+            self.send_error(status_code=404)
 
 
 class WorkspaceHandler(RootHandler):
@@ -110,30 +94,24 @@ class WorkspaceHandler(RootHandler):
                                                       config.get(f'app:{self._part}', 'target')))
 
     def get(self, path):
-        if content_ready():
-            filepath = os.path.abspath(os.path.join(self._rootpath, path))
-            if filepath.startswith(self._rootpath) and os.path.exists(filepath):
-                self.set_header('Content-Type', guess_mime_type(filepath))
-                self.set_header('X-URL-prefix', options.basepath)
-                with open(filepath, 'rb') as in_f:
-                    self.write(in_f.read())
-                self.flush()
-            else:
-                self.send_error(status_code=404)
+        filepath = os.path.abspath(os.path.join(self._rootpath, path))
+        if filepath.startswith(self._rootpath) and os.path.exists(filepath):
+            self.set_header('Content-Type', guess_mime_type(filepath))
+            self.set_header('X-URL-prefix', options.basepath)
+            with open(filepath, 'rb') as in_f:
+                self.write(in_f.read())
+            self.flush()
         else:
-            self.send_error(status_code=503)
+            self.send_error(status_code=404)
 
     def put(self, path):
-        if content_ready():
-            filepath = os.path.abspath(os.path.join(self._rootpath, path))
-            if filepath.startswith(self._rootpath) and os.path.exists(filepath):
-                with open(filepath, 'wb') as out_f:
-                    out_f.write(self.request.body)
-                self.flush()
-            else:
-                self.send_error(status_code=404)
+        filepath = os.path.abspath(os.path.join(self._rootpath, path))
+        if filepath.startswith(self._rootpath) and os.path.exists(filepath):
+            with open(filepath, 'wb') as out_f:
+                out_f.write(self.request.body)
+            self.flush()
         else:
-            self.send_error(status_code=503)
+            self.send_error(status_code=404)
 
 
 class LiveHandler(RootHandler):
@@ -147,112 +125,92 @@ class LiveHandler(RootHandler):
                                                       config.get(f'app:{self._part}', 'target')))
 
     async def get(self, path):
-        if content_ready():
-            filepath = os.path.abspath(os.path.join(self._rootpath, path))
-            if filepath.startswith(self._rootpath) and os.path.exists(filepath):
-                if filepath.endswith('.php'):
-                    env = {
-                        'GATEWAY_INTERFACE': 'CGI/1.1',
-                        'QUERY_STRING': self.request.query,
-                        'REDIRECT_STATUS': 'on',
-                        'SCRIPT_FILENAME': filepath,
-                        'DOCUMENT_ROOT': self._rootpath,
-                        'SCRIPT_NAME': filepath[len(self._rootpath):],
-                        'REQUEST_METHOD': 'GET'
-                    }
-                    proc = await create_subprocess_exec('php-cgi', stdout=subprocess.PIPE, env=env)
-                    stdout, _ = await wait_for(proc.communicate(), 30)
-                    lines = stdout.decode('utf-8').split('\n')
-                    in_headers = True
-                    for line in lines:
-                        line = line.strip()
-                        if in_headers:
-                            if line == '':
-                                in_headers = False
-                            elif ':' in line:
-                                self.set_header(line[:line.find(':')], line[line.find(':') + 1:])
-                        else:
-                            self.write(f'{line}\n')
-                else:
-                    self.set_header('Content-Type', guess_mime_type(filepath))
-                    self.set_header('X-URL-prefix', options.basepath)
-                    with open(filepath, 'rb') as in_f:
-                        self.write(in_f.read())
-                    self.flush()
+        filepath = os.path.abspath(os.path.join(self._rootpath, path))
+        if filepath.startswith(self._rootpath) and os.path.exists(filepath):
+            if filepath.endswith('.php'):
+                env = {
+                    'GATEWAY_INTERFACE': 'CGI/1.1',
+                    'QUERY_STRING': self.request.query,
+                    'REDIRECT_STATUS': 'on',
+                    'SCRIPT_FILENAME': filepath,
+                    'DOCUMENT_ROOT': self._rootpath,
+                    'SCRIPT_NAME': filepath[len(self._rootpath):],
+                    'REQUEST_METHOD': 'GET'
+                }
+                proc = await create_subprocess_exec('php-cgi', stdout=subprocess.PIPE, env=env)
+                stdout, _ = await wait_for(proc.communicate(), 30)
+                lines = stdout.decode('utf-8').split('\n')
+                in_headers = True
+                for line in lines:
+                    line = line.strip()
+                    if in_headers:
+                        if line == '':
+                            in_headers = False
+                        elif ':' in line:
+                            self.set_header(line[:line.find(':')], line[line.find(':') + 1:])
+                    else:
+                        self.write(f'{line}\n')
             else:
-                self.send_error(status_code=404)
+                self.set_header('Content-Type', guess_mime_type(filepath))
+                self.set_header('X-URL-prefix', options.basepath)
+                with open(filepath, 'rb') as in_f:
+                    self.write(in_f.read())
+                self.flush()
         else:
-            self.send_error(status_code=503)
+            self.send_error(status_code=404)
 
     async def post(self, path):
-        if content_ready():
-            filepath = os.path.abspath(os.path.join(self._rootpath, path))
-            if filepath.startswith(self._rootpath) and os.path.exists(filepath):
-                if filepath.endswith('.php'):
-                    env = {
-                        'GATEWAY_INTERFACE': 'CGI/1.1',
-                        'REDIRECT_STATUS': 'on',
-                        'SCRIPT_FILENAME': filepath,
-                        'DOCUMENT_ROOT': self._rootpath,
-                        'SCRIPT_NAME': filepath[len(self._rootpath):],
-                        'REQUEST_METHOD': 'POST',
-                        'CONTENT_TYPE': self.request.headers['Content-Type'],
-                        'CONTENT_LENGTH': self.request.headers['Content-Length']
-                    }
-                    proc = await create_subprocess_exec('php-cgi', stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
-                    stdout, _ = await wait_for(proc.communicate(self.request.body), 30)
-                    lines = stdout.decode('utf-8').split('\n')
-                    in_headers = True
-                    for line in lines:
-                        line = line.strip()
-                        if in_headers:
-                            if line == '':
-                                in_headers = False
-                            elif ':' in line:
-                                self.set_header(line[:line.find(':')], line[line.find(':') + 1:])
-                        else:
-                            self.write(f'{line}\n')
-                else:
-                    self.set_header('Content-Type', guess_mime_type(filepath))
-                    self.set_header('X-URL-prefix', options.basepath)
-                    with open(filepath, 'rb') as in_f:
-                        self.write(in_f.read())
-                    self.flush()
+        filepath = os.path.abspath(os.path.join(self._rootpath, path))
+        if filepath.startswith(self._rootpath) and os.path.exists(filepath):
+            if filepath.endswith('.php'):
+                env = {
+                    'GATEWAY_INTERFACE': 'CGI/1.1',
+                    'REDIRECT_STATUS': 'on',
+                    'SCRIPT_FILENAME': filepath,
+                    'DOCUMENT_ROOT': self._rootpath,
+                    'SCRIPT_NAME': filepath[len(self._rootpath):],
+                    'REQUEST_METHOD': 'POST',
+                    'CONTENT_TYPE': self.request.headers['Content-Type'],
+                    'CONTENT_LENGTH': self.request.headers['Content-Length']
+                }
+                proc = await create_subprocess_exec('php-cgi', stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
+                stdout, _ = await wait_for(proc.communicate(self.request.body), 30)
+                lines = stdout.decode('utf-8').split('\n')
+                in_headers = True
+                for line in lines:
+                    line = line.strip()
+                    if in_headers:
+                        if line == '':
+                            in_headers = False
+                        elif ':' in line:
+                            self.set_header(line[:line.find(':')], line[line.find(':') + 1:])
+                    else:
+                        self.write(f'{line}\n')
             else:
-                self.send_error(status_code=404)
+                self.set_header('Content-Type', guess_mime_type(filepath))
+                self.set_header('X-URL-prefix', options.basepath)
+                with open(filepath, 'rb') as in_f:
+                    self.write(in_f.read())
+                self.flush()
         else:
-            self.send_error(status_code=503)
+            self.send_error(status_code=404)
 
 
 class DownloadHandler(RootHandler):
     """Download handler compresses and sends the complete home directory."""
 
     def get(self):
-        if content_ready():
-            buffer = BytesIO()
-            with ZipFile(buffer, mode='w') as zip_file:
-                for part in [p.strip() for x in config.get('app', 'parts').split(',') for p in x.split('\n')]:
-                    if config.has_section(f'app:{part}'):
-                        part_path = os.path.join(config.get('app', 'home'), config.get(f'app:{part}', 'target'))
-                        home_path = config.get('app', 'home')
-                        for basepath, _, filenames in os.walk(part_path):
-                            for filename in filenames:
-                                filepath = os.path.join(basepath, filename)
-                                zip_file.write(filepath, f'{config.get("app", "name")}/{filepath[len(home_path) + 1:]}')
-            self.set_header('Content-Type', 'application/zip')
-            self.set_header('Content-Disposition', f'attachment; filename={config.get("app", "name")}.zip')
-            self.write(buffer.getvalue())
-            self.flush()
-        else:
-            self.send_error(status_code=503)
-
-
-class RefreshHandler(RootHandler):
-    """The :class:`~tutorial_server.handlers.RefreshHandler` reloads the tutorial content."""
-
-    async def post(self):
-        if content_ready():
-            await deploy_content()
-            self.flush()
-        else:
-            self.send_error(status_code=503)
+        buffer = BytesIO()
+        with ZipFile(buffer, mode='w') as zip_file:
+            for part in [p.strip() for x in config.get('app', 'parts').split(',') for p in x.split('\n')]:
+                if config.has_section(f'app:{part}'):
+                    part_path = os.path.join(config.get('app', 'home'), config.get(f'app:{part}', 'target'))
+                    home_path = config.get('app', 'home')
+                    for basepath, _, filenames in os.walk(part_path):
+                        for filename in filenames:
+                            filepath = os.path.join(basepath, filename)
+                            zip_file.write(filepath, f'{config.get("app", "name")}/{filepath[len(home_path) + 1:]}')
+        self.set_header('Content-Type', 'application/zip')
+        self.set_header('Content-Disposition', f'attachment; filename={config.get("app", "name")}.zip')
+        self.write(buffer.getvalue())
+        self.flush()
