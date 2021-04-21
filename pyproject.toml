@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tutorial-server"
-version = "0.5.0"
+version = "0.6.0"
 description = ""
 authors = ["Mark Hall <mark.hall@open.ac.uk>"]
 license = "MIT"
