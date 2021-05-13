@@ -82,7 +82,6 @@ class TutorialHandler(RootHandler):
             self.set_header('X-URL-prefix', options.basepath)
             if in_jupyter_hub:
                 self.set_header('X-in-jupyter-hub', 'true')
-            self.set_header()
             with open(filepath, 'rb') as in_f:
                 self.write(in_f.read())
             self.flush()
