@@ -12,6 +12,8 @@ from zipfile import ZipFile
 
 from .config import config
 
+in_jupyter_hub = os.environ.get('JUPYTERHUB_API_TOKEN') is not None
+
 
 def guess_mime_type(filepath):
     file_type = filetype.guess(str(filepath))
@@ -78,6 +80,9 @@ class TutorialHandler(RootHandler):
         if filepath.startswith(self._rootpath) and os.path.exists(filepath):
             self.set_header('Content-Type', guess_mime_type(filepath))
             self.set_header('X-URL-prefix', options.basepath)
+            if in_jupyter_hub:
+                self.set_header('X-in-jupyter-hub', 'true')
+            self.set_header()
             with open(filepath, 'rb') as in_f:
                 self.write(in_f.read())
             self.flush()
@@ -98,6 +103,8 @@ class WorkspaceHandler(RootHandler):
         if filepath.startswith(self._rootpath) and os.path.exists(filepath):
             self.set_header('Content-Type', guess_mime_type(filepath))
             self.set_header('X-URL-prefix', options.basepath)
+            if in_jupyter_hub:
+                self.set_header('X-in-jupyter-hub', 'true')
             with open(filepath, 'rb') as in_f:
                 self.write(in_f.read())
             self.flush()
@@ -153,6 +160,8 @@ class LiveHandler(RootHandler):
             else:
                 self.set_header('Content-Type', guess_mime_type(filepath))
                 self.set_header('X-URL-prefix', options.basepath)
+                if in_jupyter_hub:
+                    self.set_header('X-in-jupyter-hub', 'true')
                 with open(filepath, 'rb') as in_f:
                     self.write(in_f.read())
                 self.flush()
@@ -189,6 +198,8 @@ class LiveHandler(RootHandler):
             else:
                 self.set_header('Content-Type', guess_mime_type(filepath))
                 self.set_header('X-URL-prefix', options.basepath)
+                if in_jupyter_hub:
+                    self.set_header('X-in-jupyter-hub', 'true')
                 with open(filepath, 'rb') as in_f:
                     self.write(in_f.read())
                 self.flush()
