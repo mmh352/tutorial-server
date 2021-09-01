@@ -6,7 +6,7 @@ authors = ["Mark Hall <mark.hall@open.ac.uk>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.7"
 tornado = "^6.1"
 filetype = "^1.0.7"
 
