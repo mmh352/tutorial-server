@@ -1,6 +1,6 @@
 # Changelog
 
-## Dev
+## 1.0.0
 
 * **New**: Add support for deleting files in the workspace
 
