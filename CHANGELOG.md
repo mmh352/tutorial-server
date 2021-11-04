@@ -1,5 +1,9 @@
 # Changelog
 
+## Dev
+
+* **New**: Add support for deleting files in the workspace
+
 ## 0.9.0
 
 * **Update**: Pass all cookies to PHP CGI scripts

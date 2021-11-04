@@ -119,6 +119,16 @@ class WorkspaceHandler(RootHandler):
         else:
             self.send_error(status_code=404)
 
+    async def delete(self, path):
+        filepath = os.path.abspath(os.path.join(self._rootpath, path))
+        if filepath.startswith(self._rootpath) and os.path.exists(filepath):
+            os.unlink(filepath)
+            proc = await create_subprocess_exec('ou-container-content', 'distribute-content')
+            await proc.wait()
+            self.set_status(204)
+        else:
+            self.send_error(status_code=404)
+
 
 class LiveHandler(RootHandler):
     """Handle a live site.
