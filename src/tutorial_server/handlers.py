@@ -129,6 +129,8 @@ class LiveHandler(RootHandler):
         self._part = part
         self._rootpath = os.path.abspath(os.path.join(config.get('app', 'home'),
                                                       config.get(f'app:{self._part}', 'target')))
+        part_path = config.get(f'app:{self._part}', 'path', fallback=self._part)
+        self._urlroot = f'{options.basepath}{part_path}'
 
     async def get(self, path):
         filepath = os.path.abspath(os.path.join(self._rootpath, path))
@@ -140,8 +142,9 @@ class LiveHandler(RootHandler):
                     'REDIRECT_STATUS': 'on',
                     'SCRIPT_FILENAME': filepath,
                     'DOCUMENT_ROOT': self._rootpath,
-                    'SCRIPT_NAME': filepath[len(self._rootpath):],
-                    'REQUEST_METHOD': 'GET'
+                    'SCRIPT_NAME': f'{self._urlroot}/{path}',
+                    'REQUEST_METHOD': 'GET',
+                    'HTTP_COOKIE': self.request.headers['Cookie'] if 'Cookie' in self.request.headers else '',
                 }
                 proc = await create_subprocess_exec('php-cgi', stdout=subprocess.PIPE, env=env)
                 stdout, _ = await wait_for(proc.communicate(), 30)
@@ -176,10 +179,11 @@ class LiveHandler(RootHandler):
                     'REDIRECT_STATUS': 'on',
                     'SCRIPT_FILENAME': filepath,
                     'DOCUMENT_ROOT': self._rootpath,
-                    'SCRIPT_NAME': filepath[len(self._rootpath):],
+                    'SCRIPT_NAME': f'{self._urlroot}/{path}',
                     'REQUEST_METHOD': 'POST',
                     'CONTENT_TYPE': self.request.headers['Content-Type'],
-                    'CONTENT_LENGTH': self.request.headers['Content-Length']
+                    'CONTENT_LENGTH': self.request.headers['Content-Length'],
+                    'HTTP_COOKIE': self.request.headers['Cookie'] if 'Cookie' in self.request.headers else '',
                 }
                 proc = await create_subprocess_exec('php-cgi', stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
                 stdout, _ = await wait_for(proc.communicate(self.request.body), 30)
