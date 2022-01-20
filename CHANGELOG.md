@@ -1,6 +1,6 @@
 # Changelog
 
-## Dev
+## 1.0.2
 
 * **Update**: Pass the REQUEST_URI to any PHP scripts
 
