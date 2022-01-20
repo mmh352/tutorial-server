@@ -1,5 +1,9 @@
 # Changelog
 
+## Dev
+
+* **Update**: Pass the REQUEST_URI to any PHP scripts
+
 ## 1.0.1
 
 * **Bugfix**: Packaging fix

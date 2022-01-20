@@ -154,6 +154,7 @@ class LiveHandler(RootHandler):
                     'DOCUMENT_ROOT': self._rootpath,
                     'SCRIPT_NAME': f'{self._urlroot}/{path}',
                     'REQUEST_METHOD': 'GET',
+                    'REQUEST_URI': f'{self._urlroot}/{path}',
                     'HTTP_COOKIE': self.request.headers['Cookie'] if 'Cookie' in self.request.headers else '',
                 }
                 proc = await create_subprocess_exec('php-cgi', stdout=subprocess.PIPE, env=env)
